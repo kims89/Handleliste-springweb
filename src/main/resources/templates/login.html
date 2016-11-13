@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3" xmlns:width="http://www.w3.org/1999/xhtml">
+<script>
+    function showImages() {
+        document.getElementById("theImage").style.visibility = "visible";
+        document.getElementById("theImage").style.width = "1124px";
+        document.getElementById("theImage").style.height = "574px";
+    }
+</script>
+<style>
+    input[type=text], input[type=password] {
+        width: 30%;
+        padding: 7px 20px;
+        margin: 5px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    h1.font {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    h2.font {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    h3.font {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    p.font {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .button {
+        background-color: #005faf; /* Green */
+        border: none;
+        color: white;
+        padding: 5px 27px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+
+    </style>
+
+
+<head>
+    <title>Innlogging til handleliste </title>
+</head>
+<body>
+
+<div align="center">
+    <div style="max-width:100%; padding:15px;background: #eaeaea">
+        <div style="font-family: Arial, Helvetica, sans-serif; width:100%;border-radius: 8px;background: red" th:if="${param.error}">
+            Status: Feil brukernavn eller passord - (ny bruker kan opprettes nederst på siden)
+        </div>
+        <div style="font-family: Arial, Helvetica, sans-serif; width:100%;border-radius: 8px;background: green" th:if="${param.logout}">
+            Status: Utlogget
+        </div>
+        <div style="width: 35%;float: left">
+        <h3 class="font">Logg på med brukernavn og passord</h3>
+
+<form th:action="@{/login}" method="post">
+    <div><input type="text" placeholder="Brukernavn" name="username"/></div>
+    <div><input type="password" placeholder="Passord" name="password"/></div>
+    <div><input type="submit" value="Logg inn" class="button"/></div>
+    <h3 class="font">  Fortsett uautentisert </h3>
+    <button formaction="/home" class="button">Fortsett</button>
+
+</form>
+</div>
+        <div style="width: 35%">
+            <br/><br/>
+        <form th:action="@{/nyBruker}" method="post">
+            <h3 class="font">  Her kan du opprette ny bruker med passord,
+                dette er lagt til for enkelhets skyld  </h3>
+            <div><input type="text" placeholder="Nytt Brukernavn" name="brukernavn"/></div>
+            <div><input type="password" name="passord" placeholder="Nytt Passord"/></div>
+            <div><input type="submit" value="Opprett" class="button"/></div>
+        </form>
+            <br/><br/><br/>
+
+            </div>
+        </div>
+    </div>
+<div align="center">
+    <div style="width: 50%">
+    <h1 class="font">Oppgave 2</h1>
+    <p class="font">Oppgave 2 i Web-baserte systemer er laget av Kim Kristensen og Ole Martin Eriksen.<br/>
+        Sikkerhet løste vi ved å sperre for POST-forespørsler og tilpasse brukergrensesnittet når man ikke er logget inn.
+        Det legges til 'eventlistener' på hver rad i tabellen med dragstart, dragover og drop slik at draggable er ivaretatt. Sorteringen løste vi med å legge til et sorteringsnr på objektene, laste dem inn i sortert rekkefølge og ved en endring ble sorteringsnr byttet og lagret til MongoDB.
+        <br/><br/>
+        For å se eksempel på hvordan webapplikasjonen fungerer trykk på knappen under
+    </p>
+</div>
+    <br/>
+<button onclick="showImages()" class="button">Vis eksempel GIF</button>
+    <br/>
+<img id="theImage" src="/images/oblig2.gif" style="visibility: hidden; width: 0%;height: 0%;stroke: 2px"/>
+    <br/>
+
+</div>
+
+
+</body>
+</html>

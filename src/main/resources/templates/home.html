@@ -1,0 +1,365 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<head>
+
+    <!-- ... -->
+    <meta id="token" name="_csrf" th:content="${_csrf.token}"/>
+    <meta id="headerName" name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!-- ... -->
+
+
+    <title>OBLIG 2 - Handleliste</title>
+
+    <script>
+        /*<![CDATA[*/
+
+//       metode i javascript som tar input å sender det videre til java og oppretter et nytt opbjekt
+        function lagre() {
+            // Henter token og headerName
+            var token = document.getElementById("token").getAttribute("content");
+            var headerName = document.getElementById("headerName").getAttribute("content");
+
+            var varen = document.getElementsByTagName("input")[0].value;
+            if(varen == ""){
+                console.log("Ingen varer lagt til, ingen tekst skrevet i input.");
+                return;
+            }
+
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    console.log();
+                }
+            }
+
+            xmlHttp.open("POST", "/save", true);
+            xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            // Her sendes headerName og token til serversiden.
+            xmlHttp.setRequestHeader(headerName, token);
+            xmlHttp.send("vare=" + varen);
+
+            console.log(varen+" er lagt til");
+
+            setTimeout(function() { oppdaterListe(); }, 300);
+
+//            Tømmer tekst-feltet og flytter fokus til tekstfelt igjen
+            document.getElementById('inptxt').value = "";
+            document.getElementById('inptxt').focus();
+        }
+
+
+        //        metode i javascript som tar vareid å sender det videre til java slik at den blir slettet
+        function slettVare(vareid) {
+            // Henter token og headerName
+            var token = document.getElementById("token").getAttribute("content");
+            var headerName = document.getElementById("headerName").getAttribute("content");
+
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    console.log();
+                }
+            }
+
+            xmlHttp.open("POST", "/slettVare", true);
+            xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            // Her sendes headerName og token til serversiden.
+            xmlHttp.setRequestHeader(headerName, token);
+            xmlHttp.send("vareid=" + vareid);
+            setTimeout(function() { oppdaterListe(); }, 300);
+            console.log("vare med id: "+ vareid+" er slettet!");
+
+        }
+
+
+        //        metode i javascript som tar vareid og nytt varenavn å sender det videre til java slik at den blir endret
+        function endreVare(vareid) {
+            // Henter token og headerName
+            var token = document.getElementById("token").getAttribute("content");
+            var headerName = document.getElementById("headerName").getAttribute("content");
+
+            var varen = prompt("Skriv inn nytt varenavn eller trykk avbryt: ");
+
+            if (varen === null) {
+                return;
+            }
+
+                var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    console.log();
+                }
+            }
+
+            xmlHttp.open("POST", "/endreVare", true);
+            xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            // Her sendes headerName og token til serversiden.
+            xmlHttp.setRequestHeader(headerName, token);
+            xmlHttp.send("vareid="+vareid+"&varen="+varen);
+            setTimeout(function() { oppdaterListe(); }, 300);
+            console.log("Vare er endret til: " + varen);
+
+
+
+        }
+
+        //        metode i javascript som tar vareid og sorterings nr å sender det videre til java slik at den blir endret
+        function sortereVare(vareid, sortering) {
+            // Henter token og headerName
+            var token = document.getElementById("token").getAttribute("content");
+            var headerName = document.getElementById("headerName").getAttribute("content");
+
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    console.log();
+                }
+            }
+
+            xmlHttp.open("POST", "/sortereVare", true);
+            xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            // Her sendes headerName og token til serversiden.
+            xmlHttp.setRequestHeader(headerName, token);
+            xmlHttp.send("vareid="+vareid+"&sortering="+sortering);
+
+           setTimeout(function() { oppdaterListe(); }, 100);
+            console.log("Sortering er endret til: " + sortering);
+
+        }
+
+        //  3 drag and drop metoder en som behandler "dragstart", dragdrop og draghover
+        var dragSrcEl = null;
+
+        function handleDragStart(e) {
+
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+
+
+        }
+        function handleDrop(e) {
+
+            if (e.stopPropagation) {
+                e.stopPropagation(); // Stopper noen browsere fra å navigere bort fra siden
+            }
+//                Gjør slik at det ikke skjer noe hvis item slippes på samme kolonne som den kom i fra
+            if (dragSrcEl != this) {
+                // setter html-kilden til der den ble droppet
+                dragSrcEl.innerHTML = this.innerHTML;
+                this.innerHTML = e.dataTransfer.getData('text/html');
+
+                //henter innerHTML fra kilde og destinasjon objektet etter de har blitt flyttet.
+                var kilde = this.innerHTML;
+                var destinasjon = dragSrcEl.innerHTML;
+
+                // her hentes sorterings nr og ID til varene som skal flyttes
+                //brukes pop & split.
+                var nrK = kilde.split('sortering">').pop().split('</td>');
+                var nrD = destinasjon.split('sortering">').pop().split('</td>');
+                var IDkilde = kilde.split("endreVare('").pop().split("')");
+                var IDdestinasjon = destinasjon.split("endreVare('").pop().split("')");
+
+
+                sortereVare(IDkilde[0], nrD[0]);
+                sortereVare(IDdestinasjon[0],nrK[0]);
+            }
+
+            return false;
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault(); // Tillater et drop
+            }
+
+            e.dataTransfer.dropEffect = 'move';
+
+
+            return false;
+        }
+
+
+        //        metode i javascript som henter json fra mongoDB og legger det i en tabell i HTML
+        function oppdaterListe(){
+
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function(){
+                if(xmlHttp.readyState == 4 && xmlHttp.status == 200){
+                    console.log("JSON response: "+xmlHttp.responseText);
+                    var ta = document.getElementById("table");
+
+                    ta.innerHTML = "<thead> <tr> <th>Varer</th><th>Valg</th> </tr> </thead>";
+                    json = JSON.parse(xmlHttp.responseText);
+
+                    json.forEach(function(entry){
+
+                        var ta = document.getElementById("table");
+                        var tr = document.createElement("thead");
+
+                        tr.addEventListener('dragstart', handleDragStart, false);
+                        tr.addEventListener('drop', handleDrop, false);
+                        tr.addEventListener('dragover', handleDragOver, false);
+
+                        tr.innerHTML = "<tr draggable='true' ><td hidden='hidden' id='sortering' >"+entry.sortering+"</td> <td>"+entry.vare+"</td>"+"<td>" +
+                                "<button onClick=slettVare('"+entry.id+"') class='button buttonRed' value='slett' >Slett</button>     |     " +
+                                "<button name='endre' onClick=endreVare('"+entry.id+"') class='button buttonGreen' value='endre' >Endre</button></td> </tr>";
+
+                        ta.appendChild(tr);
+
+                    });
+//
+                }
+            }
+            console.log("Varer lastet i handlelisten");
+            xmlHttp.open("GET", "/list/json", true);
+            xmlHttp.send();
+
+        }
+
+
+        /*]]>*/
+    </script>
+
+    <!--Design/farge i HTML-->
+    <style>
+
+        /*Denne forandrer utseende på inputfeltene*/
+        input[type=text], input[type=password] {
+            width: 30%;
+            padding: 7px 20px;
+            margin: 5px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /*Her forandres skrifttypen på h1,h2,h3 og p*/
+        h1.font {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        h2.font {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        h3.font {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        p.font {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /*Her endres utseende på knappene*/
+        .button {
+            background-color: #005faf;
+            border: none;
+            color: white;
+            padding: 5px 27px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .buttonRed{
+            background-color: #ff4542;
+        }
+        .buttonGreen{
+            background-color: #3eaf23;
+        }
+
+        /*Her endres utseende på tabellen*/
+        table {
+            color: #333;
+            font-family: sans-serif;
+            font-size: 22px;
+            font-weight: 300;
+            text-align: center;
+            line-height: 40px;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 2px solid #005faf;
+            width: 40%;
+            margin: 50px auto;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,.16);
+            border-radius: 2px;
+        }
+
+        /*Her forandres utseende på kolonnenavnet i tabellen*/
+        th {
+            font-family: sans-serif;
+            font-weight: bold;
+            background: #005faf;
+            color: #fff;
+            border: none;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div align="center">
+    <div style="max-width:100%; padding:15px;background: #eaeaea">
+        <!--Hvis bruker er logget inn vises dette-->
+        <div th:if="${#httpServletRequest.remoteUser}">
+
+
+            <script>
+                oppdaterListe();
+            </script>
+            <h3 class="font">Legg til vare</h3>
+            <!--her er autofokus og entertast lagt til input-feltet -->
+            <input type="text" placeholder="Legg inn varer her f.eks pære, eple eller melk" id="inptxt" autofocus="autofocus" onkeydown = "if (event.keyCode == 13) lagre()"/>
+
+             <input type="submit" class="button" value="Legg inn" onClick="lagre()" />
+            <form th:action="@{/logout}" method="post">
+                <br/>
+                <p class="font" th:inline="text">Hei, <strong>[[${#httpServletRequest.remoteUser}]]</strong>! Her legger du til varene til handlelisten din. For å logge ut kan du trykke bare på Logg ut-knappen.</p>
+                <input type="submit" class="button" value="Logg ut"/>
+            </form>
+            </div>
+
+        <!--Hvis gjest logger på vil det bli presentert en tilbakeknapp til login-siden. -->
+        <div th:unless="${#httpServletRequest.remoteUser}" >
+            <h3 class="font" th:inline="text">Hei <strong>gjest</strong>! Her får du en oversikt over alle varene som er i databasen. Trykk tilbake for å logge inn</h3>
+            <form th:action="@{/login}" method="post">
+                <div ><input type="submit" value="Tilbake" class="button"/></div>
+            </form>
+        </div>
+
+    </div>
+    <!--Hvis bruker er logget inn vises dette-->
+    <div th:if="${#httpServletRequest.remoteUser}">
+        <table id="table"  >
+
+        </table>
+    </div>
+
+
+    <!--Hvis bruker IKKE er logget inn vises dette-->
+    <!-- innlasting av "dumliste" -->
+    <div th:unless="${#httpServletRequest.remoteUser}" >
+
+
+        <table>
+            <thead>
+            <tr>
+                <th>Varer</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="H : ${HandleListe}">
+                <td th:text="${H.vare}"  > </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
